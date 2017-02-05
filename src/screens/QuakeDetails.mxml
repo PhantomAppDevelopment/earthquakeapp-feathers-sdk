@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<f:PanelScreen xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" xmlns:f="library://ns.feathersui.com/mxml" title="Quake Details"
+			   transitionInComplete="transitionComplete(event)">
+	
+	<!--
+	This screen will show the most important information about the selected earthquake, including a tile map from OSM.
+	In this screen we show how you add UI elements created with ActionScript into a MXML container.
+	-->
+	<fx:Script>
+		<![CDATA[
+			import flash.events.Event;
+			
+			import feathers.controls.ImageLoader;
+			import feathers.controls.Label;
+			import feathers.controls.LayoutGroup;
+			import feathers.layout.TiledRowsLayout;
+			import feathers.layout.VerticalLayoutData;
+			
+			import starling.events.Event;
+			import starling.text.TextFormat;
+			
+			protected var _data:NavigatorData;
+			
+			public function get data():NavigatorData
+			{
+				return this._data;
+			}
+			
+			public function set data(value:NavigatorData):void
+			{
+				this._data = value;
+			}
+			
+			/*
+			Once our screen transition has finished we are goign to connect to the web API once more
+			ann request detailed information about the quake.
+			The URL provided for the URLRequest is taken directly from the previous API call and its
+			stored in the selectedQuake.properties.detail property.
+			*/
+			private function transitionComplete(event:starling.events.Event):void
+			{				
+				var request:URLRequest = new URLRequest(_data.selectedQuake.properties.detail);
+				
+				var loader:URLLoader = new URLLoader();
+				loader.addEventListener(flash.events.Event.COMPLETE, quakeDetailsLoaded);
+				loader.load(request);
+			}
+			
+			/*
+			Once our detailed data has been loaded we start to present it in a table.
+			This table is a LayoutGroup with a TiledLayout with a maximum of 2 columns.
+			Since we are adding labels in pairs we are guaranteed that our table structure is correct.
+			Notice that we also add the UI elements from top to bottom, starting with the title and image
+			and finishing with all the quake details in pairs.
+			*/
+			private function quakeDetailsLoaded(event:flash.events.Event):void
+			{
+				event.currentTarget.removeEventListener(flash.events.Event.COMPLETE, quakeDetailsLoaded);
+				
+				var rawData:Object = JSON.parse(event.currentTarget.data);
+								
+				placeLabel.text = rawData.properties.place;
+				
+				/*
+				To add a tile map we have to prepare 3 variables, latitude, longitude and the zoom level.
+				We take the 2 first from the API response and we manually set the zoom level at our liking.
+				The long2tile and lat2tile functions take the coordinates and zoom level as parameters and
+				they return the tile address from the OSM server.
+				We finally tell the ImageLoader to load the tile from the OSM server.
+				*/
+				var zoom:Number = 8;
+				var longitude:Number = long2tile(rawData.geometry.coordinates[0], zoom);
+				var latitude:Number = lat2tile(rawData.geometry.coordinates[1], zoom);
+				
+				map.source = "http://a.tile.openstreetmap.org/" + zoom + "/" + longitude + "/" + latitude + ".png";
+				
+				/*
+				The following labels are added directly to the LayoutGroup that has the tiled layout.
+				Small tweaks were made to ensure the labels always contain useful information.
+				*/
+				var dateLabel:Label = new Label();
+				dateLabel.text = "Date:";
+				summaryTable.addChild(dateLabel);
+				
+				var dateValueLabel:Label = new Label();
+				dateValueLabel.text = new Date(Number(rawData.properties.time)).toLocaleDateString();
+				summaryTable.addChild(dateValueLabel);
+				
+				var timeLabel:Label = new Label();
+				timeLabel.text = "Time:";
+				summaryTable.addChild(timeLabel);
+				
+				var timeValueLabel:Label = new Label();
+				timeValueLabel.text = new Date(Number(rawData.properties.time)).toLocaleTimeString();
+				summaryTable.addChild(timeValueLabel);
+				
+				var magnitudeLabel:Label = new Label();
+				magnitudeLabel.text = "Magnitude:";
+				summaryTable.addChild(magnitudeLabel);
+				
+				var magnitudeValueLabel:Label = new Label();
+				magnitudeValueLabel.text = rawData.properties.mag;
+				summaryTable.addChild(magnitudeValueLabel);
+				
+				var significanceLabel:Label = new Label();
+				significanceLabel.text = "Significance:";
+				summaryTable.addChild(significanceLabel);
+				
+				var significanceValueLabel:Label = new Label();
+				significanceValueLabel.text = rawData.properties.sig + "/1000";
+				summaryTable.addChild(significanceValueLabel);
+				
+				var feltLabel:Label = new Label();
+				feltLabel.text = "Felt Reports:";
+				summaryTable.addChild(feltLabel);
+				
+				var feltValueLabel:Label = new Label();
+				if (rawData.properties.felt == null) {
+					feltValueLabel.text = "No reports yet."
+				} else {
+					feltValueLabel.text = rawData.properties.felt;
+				}
+				summaryTable.addChild(feltValueLabel);
+				
+				var tsunamiLabel:Label = new Label();
+				tsunamiLabel.text = "Tsunami Alert:";
+				summaryTable.addChild(tsunamiLabel);
+				
+				var tsunamiValueLabel:Label = new Label();
+				if (rawData.properties.tsunami == 1) {
+					tsunamiValueLabel.text = "Yes";
+				} else {
+					tsunamiValueLabel.text = "No";
+				}
+				summaryTable.addChild(tsunamiValueLabel);
+				
+			}
+			
+			/*
+			long2tile and lat2tile functions were taken from the OSM wiki at:
+			https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+			*/
+			private function long2tile(lon:Number, zoom:Number):Number
+			{
+				return (Math.floor((lon + 180) / 360 * Math.pow(2, zoom)));
+			}
+			
+			private function lat2tile(lat:Number, zoom:Number):Number
+			{
+				return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)));
+			}
+			
+			private function goBack():void
+			{
+				this.dispatchEventWith(starling.events.Event.COMPLETE);
+			}			
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Since we are using this same layoutData several times, we added it in the Declarations tag so we can reuse it. --> 
+		<f:VerticalLayoutData id="myVerticalLayoutData" percentWidth="100" percentHeight="NaN"/>
+	</fx:Declarations>
+	
+	<f:headerProperties>
+		<fx:Object>
+			<fx:leftItems>
+				<fx:Vector type="starling.display.DisplayObject">
+					<f:Button styleName="back-button" triggered="goBack()"/>
+				</fx:Vector>
+			</fx:leftItems>
+		</fx:Object>
+	</f:headerProperties>
+	
+	<f:layout>
+		<f:VerticalLayout gap="3" horizontalAlign="center" />
+	</f:layout>
+
+	<!-- Top label -->
+	<f:Label id="placeLabel" fontStyles="{new starling.text.TextFormat('MyFont', 24, 0xFFFFFF)}" padding="10" wordWrap="true" layoutData="{myVerticalLayoutData}"/>
+	
+	<!-- Tile Map -->
+	<f:ImageLoader id="map" width="250" height="250" layoutData="{myVerticalLayoutData}"/>
+	
+	<!--  Table of quake features -->
+	<f:LayoutGroup id="summaryTable" layoutData="{myVerticalLayoutData}">
+		<f:layout>
+			<f:TiledRowsLayout requestedColumnCount="2" distributeWidths="true" useSquareTiles="false" padding="20" verticalGap="20" tileHorizontalAlign="left"/>
+		</f:layout>
+	</f:LayoutGroup>
+	
+</f:PanelScreen>

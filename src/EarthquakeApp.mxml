@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<f:StackScreenNavigatorApplication xmlns:f="library://ns.feathersui.com/mxml"
+								   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								   xmlns:s="library://ns.adobe.com/flex/spark" theme="CustomTheme" rootScreenID="homeScreen" xmlns:local="*">
+	<!--
+	We set the name of our theme file (CustomTheme.as) in the theme property.
+	The rootScreenID is the string value from the screen we want to show first when the app starts.
+	-->
+	<fx:Script>
+		<![CDATA[
+			import feathers.motion.Slide;
+			
+			/*
+			We declare the IDs of the screens our app is going to use.
+			*/
+			private static const HOME_SCREEN:String = "homeScreen";
+			private static const LIST_DETAILS_SCREEN:String = "listDetailsScreen";
+			private static const QUAKE_DETAILS_SCREEN:String = "quakeDetailsScreen";
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- We instantiate our NAVIGATOR_DATA once so it is ready to be used by any screen. -->
+		<local:NavigatorData id="NAVIGATOR_DATA"/>
+		
+		<!-- This PopEvent will be reused for some screens, we save lines of code by declaring it here and reusing it below. -->
+		<fx:Vector id="PopEvent" type="String">
+			<fx:String>{Event.COMPLETE}</fx:String>
+		</fx:Vector>
+	</fx:Declarations>
+	
+	<!-- The default push and pop transitions that will apply to every screen. -->
+	<f:pushTransition>{Slide.createSlideLeftTransition()}</f:pushTransition>
+	<f:popTransition>{Slide.createSlideRightTransition()}</f:popTransition>
+	
+	<!-- Home Screen -->
+	<f:StackScreenNavigatorItem id="homeScreen">
+		<!-- This refers the class name, in this case our class is the HomeScreen.mxml file. -->
+		<fx:Class>screens.HomeScreen</fx:Class>
+		
+		<!-- The name of the event declared here must be the same as declared inside the class file or it won't trigger. -->
+		<f:pushEvents>
+			<fx:Object goListDetails="{LIST_DETAILS_SCREEN}"/>
+		</f:pushEvents>
+		
+		<!-- We bind the NAVIGATOR_DATA as the data property. -->
+		<f:properties>
+			<fx:Object data="{NAVIGATOR_DATA}" />
+		</f:properties>
+	</f:StackScreenNavigatorItem>
+	
+	<!-- List Details Screen -->
+	<f:StackScreenNavigatorItem id="listDetailsScreen" popEvents="{PopEvent}">
+		<fx:Class>screens.ListDetails</fx:Class>
+		
+		<f:pushEvents>
+			<fx:Object goQuakeDetails="{QUAKE_DETAILS_SCREEN}"/>
+		</f:pushEvents>
+		
+		<f:properties>
+			<fx:Object data="{NAVIGATOR_DATA}" />
+		</f:properties>
+	</f:StackScreenNavigatorItem>
+	
+	<!-- Quake Details Screen -->
+	<f:StackScreenNavigatorItem id="quakeDetailsScreen" popEvents="{PopEvent}">
+		<fx:Class>screens.QuakeDetails</fx:Class>
+	
+		<f:properties>
+			<fx:Object data="{NAVIGATOR_DATA}" />
+		</f:properties>
+	</f:StackScreenNavigatorItem>
+	
+</f:StackScreenNavigatorApplication>

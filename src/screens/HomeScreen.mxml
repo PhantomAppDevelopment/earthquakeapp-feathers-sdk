@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<f:PanelScreen xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" xmlns:f="library://ns.feathersui.com/mxml" title="Earthquakes" transitionInComplete="transitionComplete(event)">
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import starling.events.Event;
+			
+			public static const GO_LIST_DETAILS:String = "goListDetails";
+			
+			/*
+			This variable and the next 2 functions are boilerplate code that will create a getter and setter for the 'data' property.
+			The other screens contain the same code since they will also require this property to correctly function.
+			*/
+			protected var _data:NavigatorData;
+			
+			public function get data():NavigatorData
+			{
+				return this._data;
+			}
+			
+			public function set data(value:NavigatorData):void
+			{
+				this._data = value;
+			}
+			
+			/*
+			Everytime we come back to the HomeScreen this function will be called.	
+			*/			
+			protected function transitionComplete(event:starling.events.Event):void
+			{
+				System.gc(); //This function will call the garbage collector everytime we come back to the main menu
+			}
+			
+			/*
+			This function is called when one of the buttons gets TRIGGERED (clicked,pressed/tapped).
+			This function saves the parameters into the NAVIGATOR_DATA Object.
+			It finally dispatches the GO_LIST_DETAILS event which the StackScreenNavigator is listening to.
+			*/
+			private function goNextScreen(label:String, url:String):void
+			{
+				_data.selectedLabel = label;
+				_data.selectedURL = url;
+				this.dispatchEventWith(GO_LIST_DETAILS);
+			}
+						
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Since we are using this same layoutData several times, we added it in the Declarations tag so we can reuse it. --> 
+		<f:VerticalLayoutData id="layoutDataForButtons" percentWidth="100" percentHeight="25"/>
+	</fx:Declarations>
+	
+	<!-- This is the layout used for this particular PanelScreen. -->
+	<f:layout>
+		<f:VerticalLayout />
+	</f:layout>
+	
+	<!--
+	MXML is parsed from top to bottom, this means that the UI elements we declared are added to the stage in the same order.
+	We will reuse the layoutData, styleName and triggered properties for all the buttons.
+	The default icon needs to be added in a sub tag which holds an ImageLoader with an specific source, height and width.	
+	-->
+
+	<!-- Button 1 -->
+	<f:Button label="Past Hour" layoutData="{layoutDataForButtons}" styleName="horizontal-button"
+			  triggered="goNextScreen('Past Hour', 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson')">
+		<f:defaultIcon>
+			<f:ImageLoader source="assets/icons/hour.png" width="40" height="40"/>
+		</f:defaultIcon>
+	</f:Button>
+	
+	<!-- Button 2 -->
+	<f:Button label="Past Day" layoutData="{layoutDataForButtons}" styleName="horizontal-button"
+			  triggered="goNextScreen('Past Day', 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson')">
+		<f:defaultIcon>
+			<f:ImageLoader source="assets/icons/day.png" width="40" height="40"/>
+		</f:defaultIcon>
+	</f:Button>
+	
+	<!-- Button 3 -->
+	<f:Button label="Past Week" layoutData="{layoutDataForButtons}" styleName="horizontal-button"
+			  triggered="goNextScreen('Past Week', 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson')">
+		<f:defaultIcon>
+			<f:ImageLoader source="assets/icons/week.png" width="40" height="40"/>
+		</f:defaultIcon>
+	</f:Button>
+	
+	<!-- Button 4 -->
+	<f:Button label="Past Month" layoutData="{layoutDataForButtons}" styleName="horizontal-button"
+			  triggered="goNextScreen('Past Month', 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson')">
+		<f:defaultIcon>
+			<f:ImageLoader source="assets/icons/month.png" width="40" height="40"/>
+		</f:defaultIcon>
+	</f:Button>
+	
+</f:PanelScreen>
