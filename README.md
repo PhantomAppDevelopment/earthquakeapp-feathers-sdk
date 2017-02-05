@@ -1,0 +1,1 @@
+# earthquakeapp-feathers-sdk
